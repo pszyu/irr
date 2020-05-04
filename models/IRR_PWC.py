@@ -66,10 +66,16 @@ class PWCNet(nn.Module):
         occs = []
 
         _, _, h_x1, w_x1, = x1_pyramid[0].size()
-        flow_f = torch.zeros(batch_size, 2, h_x1, w_x1).float().cuda()
-        flow_b = torch.zeros(batch_size, 2, h_x1, w_x1).float().cuda()
-        occ_f = torch.zeros(batch_size, 1, h_x1, w_x1).float().cuda()
-        occ_b = torch.zeros(batch_size, 1, h_x1, w_x1).float().cuda()
+        if self.args.cuda:
+            flow_f = torch.zeros(batch_size, 2, h_x1, w_x1).float().cuda()
+            flow_b = torch.zeros(batch_size, 2, h_x1, w_x1).float().cuda()
+            occ_f = torch.zeros(batch_size, 1, h_x1, w_x1).float().cuda()
+            occ_b = torch.zeros(batch_size, 1, h_x1, w_x1).float().cuda()
+        else:
+            flow_f = torch.zeros(batch_size, 2, h_x1, w_x1).float()
+            flow_b = torch.zeros(batch_size, 2, h_x1, w_x1).float()
+            occ_f = torch.zeros(batch_size, 1, h_x1, w_x1).float()
+            occ_b = torch.zeros(batch_size, 1, h_x1, w_x1).float()
 
         for l, (x1, x2) in enumerate(zip(x1_pyramid, x2_pyramid)):
 
