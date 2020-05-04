@@ -22,6 +22,8 @@ class PWCNet(nn.Module):
         self.num_levels = 7
         self.leakyRELU = nn.LeakyReLU(0.1, inplace=True)
 
+        # The feature extractor output feature pyramid from coarse to 
+        # fine resolutions, in total 6.
         self.feature_pyramid_extractor = FeatureExtractor(self.num_chs)
         self.warping_layer = WarpingLayer()
 
