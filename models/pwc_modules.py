@@ -5,7 +5,8 @@ import torch.nn as nn
 import torch.nn.functional as tf
 import logging
 
-DEBUGGING = True
+# DEBUGGING = True
+DEBUGGING = False
 
 def conv(in_planes, out_planes, kernel_size=3, stride=1, dilation=1, isReLU=True):
     if isReLU:
@@ -46,6 +47,10 @@ def upsample2d_as(inputs, target_as, mode="bilinear"):
     return tf.interpolate(inputs, [h, w], mode=mode, align_corners=True)
 
 
+def downsample2d_as(inputs, target_as, mode="bilinear"):
+    return upsample2d_as(inputs, target_as, mode)
+
+
 def rescale_flow(flow, div_flow, width_im, height_im, to_local=True):
     if to_local:
         u_scale = float(flow.size(3) / width_im / div_flow)
@@ -59,6 +64,17 @@ def rescale_flow(flow, div_flow, width_im, height_im, to_local=True):
     v *= v_scale
 
     return torch.cat([u, v], dim=1)
+
+
+def concat_and_sync_dims(inputs):
+    '''
+        Assume: The first item in the list has the largest dimensions.
+    '''
+    outputs = []
+    for item in inputs:
+        outputs.append(upsample2d_as(item, inputs[0], mode='bilinear'))
+
+    return torch.cat(outputs, dim=1)
 
 
 class FeatureExtractor(nn.Module):
@@ -116,6 +132,31 @@ class WarpingLayer(nn.Module):
         mask = (mask >= 1.0).float()
 
         return x_warp * mask
+
+
+class DownWarpingLayer(nn.Module):
+    def __init__(self):
+        super(DownWarpingLayer, self).__init__()
+
+    def forward(self, x, flow, height_im, width_im, div_flow):
+        flo_list = []
+        flo_w = flow[:, 0] / 2 / max(width_im - 1, 1) / div_flow
+        flo_h = flow[:, 1] / 2 / max(height_im - 1, 1) / div_flow
+        flo_list.append(flo_w)
+        flo_list.append(flo_h)
+        flow_for_grid = torch.stack(flo_list).transpose(0, 1)
+        grid = torch.add(get_grid(x), flow_for_grid).transpose(1, 2).transpose(2, 3)        
+        x_warp = tf.grid_sample(x, grid)
+
+        if DEBUGGING:
+            mask = torch.ones(x.size(), requires_grad=False)
+        else:
+            mask = torch.ones(x.size(), requires_grad=False).cuda()
+        mask = tf.grid_sample(mask, grid)
+        mask = (mask >= 1.0).float()
+
+        return x_warp * mask
+
 
 class OpticalFlowEstimator(nn.Module):
     def __init__(self, ch_in):
@@ -222,6 +263,36 @@ class OccContextNetwork(nn.Module):
             conv(96, 64, 3, 1, 16),
             conv(64, 32, 3, 1, 1),
             conv(32, 1, isReLU=False)
+        )
+
+    def forward(self, x):
+        return self.convs(x)
+
+
+class FlowFusionNetwork(nn.Module):
+    def __init__(self, ch_in):
+        super(FlowFusionNetwork, self).__init__()
+
+        self.convs = nn.Sequential(
+            conv(ch_in, 64, 3, 1, 1),
+            conv(64, 32, 3, 1, 2),
+            conv(32, 16, 3, 1, 4),
+            conv(16, 2, isReLU=False)
+        )
+
+    def forward(self, x):
+        return self.convs(x)
+
+
+class OccFusionNetwork(nn.Module):
+    def __init__(self, ch_in):
+        super(OccFusionNetwork, self).__init__()
+
+        self.convs = nn.Sequential(
+            conv(ch_in, 64, 3, 1, 1),
+            conv(64, 32, 3, 1, 2),
+            conv(32, 16, 3, 1, 4),
+            conv(16, 1, isReLU=False)
         )
 
     def forward(self, x):

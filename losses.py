@@ -522,7 +522,9 @@ class MultiScaleEPE_PWC_Bi_Occ_upsample(nn.Module):
         super(MultiScaleEPE_PWC_Bi_Occ_upsample, self).__init__()
         self._args = args
         self._batch_size = args.batch_size
-        self._weights = [0.32, 0.08, 0.02, 0.01, 0.005, 0.00125, 0.0003125]
+
+        # The loss is measured on flows in the order of flow6,5,4,3,2 flow_fused (same dims as flow2), flow1,0.
+        self._weights = [0.32, 0.08, 0.02, 0.01, 0.005, 0.005, 0.00125, 0.0003125]
 
         self.occ_activ = nn.Sigmoid()
         self.f1_score_bal_loss = f1_score_bal_loss

@@ -14,6 +14,7 @@ from . import pwcnet_irr_bi
 from . import pwcnet_irr_occ
 from . import pwcnet_irr_occ_bi
 from . import IRR_PWC
+from . import IRR_PWC_FEE_OEE
 
 
 FlowNet1S            = flownet1s.FlowNet1S
@@ -33,4 +34,6 @@ PWCNet_irr_occ_bi    = pwcnet_irr_occ_bi.PWCNet
 
 IRR_FlowNet          = IRR_FlowNet.FlowNet1S
 IRR_PWC              = IRR_PWC.PWCNet
+
+IRR_PWC_FEE_OEE      = IRR_PWC_FEE_OEE.PWCNet
 
