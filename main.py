@@ -10,9 +10,6 @@ import logging
 import tools
 import torch
 
-import warnings
-warnings.filterwarnings("ignore")
-
 
 def main():
 
