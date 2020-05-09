@@ -75,7 +75,7 @@ def create_progressbar(iterable,
         "desc": desc,                          # Prefix for the progress bar
         "total": len(iterable),                # The number of expected iterations
         "leave": True,                         # Leave progress bar when done
-        "miniters": 1 if train else None,      # Minimum display update interval in iterations
+        "miniters": 1000 if train else None,      # Minimum display update interval in iterations
         "unit": unit,                          # String be used to define the unit of each iteration
         "initial": initial,                    # The initial counter value.
         "dynamic_ncols": True,                 # Allow window resizes
