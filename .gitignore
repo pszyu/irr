@@ -3,3 +3,5 @@
 *.o
 ._*
 experiments/*
+scripts/output/*
+scripts/test.sh
