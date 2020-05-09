@@ -524,7 +524,12 @@ class MultiScaleEPE_PWC_Bi_Occ_upsample(nn.Module):
         self._batch_size = args.batch_size
 
         # The loss is measured on flows in the order of flow6,5,4,3,2 flow_fused (same dims as flow2), flow1,0.
-        self._weights = [0.32, 0.08, 0.02, 0.01, 0.005, 0.005, 0.00125, 0.0003125]
+        self._weights = [0.32, 0.08, 0.02, 0.01, 0.005, 0.00125, 0.0003125]
+
+        if args.fair_weights:
+            self._weights_fused = [1.28, 0.32, 0.08, 0.02, 0.005, 0.005, 0.00125, 0.0003125]
+        else:
+            self._weights_fused = [0.32, 0.08, 0.02, 0.01, 0.005, 0.005, 0.00125, 0.0003125]
 
         self.occ_activ = nn.Sigmoid()
         self.f1_score_bal_loss = f1_score_bal_loss
@@ -546,12 +551,30 @@ class MultiScaleEPE_PWC_Bi_Occ_upsample(nn.Module):
             flow_loss = 0
             occ_loss = 0
 
+            # Loss for flow.
+            if len(output_flo) == 7:
+                loss_weights = self._weights
+            elif len(output_flo) == 8:
+                loss_weights = self._weights_fused
+            else:
+                print('The number of output flow should be either 7 or 8')
+                exit()
+
             for ii, output_ii in enumerate(output_flo):
                 loss_ii = 0
                 for jj in range(0, len(output_ii) // 2):
                     loss_ii = loss_ii + _elementwise_epe(output_ii[2 * jj], _downsample2d_as(target_flo_f, output_ii[2 * jj])).sum()
                     loss_ii = loss_ii + _elementwise_epe(output_ii[2 * jj + 1], _downsample2d_as(target_flo_b, output_ii[2 * jj + 1])).sum()
-                flow_loss = flow_loss + self._weights[ii] * loss_ii / len(output_ii)
+                flow_loss = flow_loss + loss_weights[ii] * loss_ii / len(output_ii)
+
+            # Loss for occlusion.
+            if len(output_occ) == 7:
+                loss_weights = self._weights
+            elif len(output_occ) == 8:
+                loss_weights = self._weights_fused
+            else:
+                print('The number of output occlusion should be either 7 or 8')
+                exit()
 
             for ii, output_ii in enumerate(output_occ):
                 loss_ii = 0
@@ -560,7 +583,7 @@ class MultiScaleEPE_PWC_Bi_Occ_upsample(nn.Module):
                     output_occ_b = self.occ_activ(output_ii[2 * jj + 1])
                     loss_ii = loss_ii + self.f1_score_bal_loss(output_occ_f, _downsample2d_as(target_occ_f, output_occ_f))
                     loss_ii = loss_ii + self.f1_score_bal_loss(output_occ_b, _downsample2d_as(target_occ_b, output_occ_b))
-                occ_loss = occ_loss + self._weights[ii] * loss_ii / len(output_ii)
+                occ_loss = occ_loss + loss_weights[ii] * loss_ii / len(output_ii)
 
             f_loss = flow_loss.detach()
             o_loss = occ_loss.detach()

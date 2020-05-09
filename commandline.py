@@ -205,6 +205,7 @@ def _parse_arguments():
     add("--save_result_png", type=tools.str2bool, default=False)
     add("--save_result_bidirection", type=tools.str2bool, default=False)
     add("--num_iters", type=int, default=1)
+    add("--fair_weights", type=tools.str2bool, default=False)
 
     # -------------------------------------------------------------------------
     # Arguments inferred from losses
