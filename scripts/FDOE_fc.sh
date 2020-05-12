@@ -14,12 +14,12 @@ FLYINGCHAIRS_OCC_HOME=/usr/xtmp/shuzhiyu/datasets/FCOcc/FlyingChairsOcc/data
 # model and checkpoint
 MODEL=IRR_PWC_FED_OEE
 EVAL_LOSS=MultiScaleEPE_PWC_Bi_Occ_upsample
-CHECKPOINT=None
+CHECKPOINT="experiments/IRR_PWC_FED_OEE-20200506-111357/checkpoint_latest.ckpt"
 SIZE_OF_BATCH=3
 
 # save path
 TIME=$(date +"%Y%m%d-%H%M%S")
-SAVE_PATH="$EXPERIMENTS_HOME/$MODEL-$TIME"
+SAVE_PATH="$EXPERIMENTS_HOME/$MODEL-fc2-$TIME"
 
 # training configuration
 python3 ../main.py \
@@ -35,6 +35,7 @@ python3 ../main.py \
 --optimizer_lr=1e-4 \
 --optimizer_weight_decay=4e-4 \
 --save=$SAVE_PATH \
+--start_epoch=65 \
 --total_epochs=108 \
 --training_augmentation=RandomAffineFlowOcc \
 --training_dataset=FlyingChairsOccTrain \
