@@ -15,12 +15,12 @@ SINTEL_HOME=/usr/xtmp/vision/datasets/MPI_Sintel/
 # model and checkpoint
 MODEL=IRR_PWC_FEE_OEE
 EVAL_LOSS=MultiScaleEPE_PWC_Bi_Occ_upsample
-CHECKPOINT="saved_check_point/IRR-PWC_flyingchairsOcc/checkpoint_latest.ckpt"
+CHECKPOINT="experiments/IRR_PWC_FEE_OEE-2-fc2-20200512-124239/checkpoint_latest.ckpt"
 SIZE_OF_BATCH=3
 
 # save path
 TIME=$(date +"%Y%m%d-%H%M%S")
-SAVE_PATH="$EXPERIMENTS_HOME/$MODEL-$TIME"
+SAVE_PATH="$EXPERIMENTS_HOME/$MODEL-2-ft1-$TIME"
 
 # training configuration
 python3 ../main.py \
